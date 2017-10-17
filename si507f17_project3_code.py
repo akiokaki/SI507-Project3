@@ -277,27 +277,6 @@ for each_link in mi_sub_Soup.find_all("div",{'class':'col-md-9 col-sm-9 col-xs-1
 # 	print(m)
 
 
-
-
-
-# arkansas_outfile = open("arkansas.csv","w")
-# arkansas_outfile.write('Name,Location,Type,Address,Description\n')
-# for each_park in arkansas_natl_sites:
-    # arkansas_outfile.write('{},{},{},{},{}\n'.format(each_park.name, each_park.location.replace(',',' '), each_park.type.replace(',',' '), each_park.get_mailing_address(), each_park.description.replace(',',' ')))
-# arkansas_outfile.close()
-
-# california_outfile = open("california.csv","w")
-# california_outfile.write('Name,Location,Type,Address,Description\n')
-# for each_park in california_natl_sites:
-    # california_outfile.write('{},{},{},{},{}\n'.format(each_park.name, each_park.location.replace(',',' '), each_park.type.replace(',',' '), each_park.get_mailing_address(), each_park.description.replace(',',' ')))
-# california_outfile.close()
-
-# michigan_outfile = open("michigan.csv","w")
-# michigan_outfile.write('Name,Location,Type,Address,Description\n')
-# for each_park in michigan_natl_sites:
-    # michigan_outfile.write('{},{},{},{},{}\n'.format(each_park.name, each_park.location.replace(',',' '), each_park.type.replace(',',' '), each_park.get_mailing_address(), each_park.description.replace(',',' ')))
-# michigan_outfile.close()
-
 with open('arkansas.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['Name','Location','Type','Address','Description'])
