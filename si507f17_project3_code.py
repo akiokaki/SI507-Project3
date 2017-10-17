@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup as Soup
 import unittest
 import requests
+import csv
 
 #########
 ## Instr note: the outline comments will stay as suggestions, otherwise it's too difficult.
@@ -30,7 +31,7 @@ cat_img_repository = cat_soup.find_all("img")
 cat_alt = []
 for cat_element in cat_img_repository:
     cat_alt.append(cat_element.get('alt',"No alternative text provided!"))
-print(cat_alt)
+# print(cat_alt)
     
 ######### PART 1 #########
 
@@ -146,21 +147,21 @@ except:
 
     ar_data = requests.get(ar_url)
     ar_data.encoding = 'utf-8'
-    ar_data = ar_data.text
+    arkansas_data = ar_data.text
     with open("arkansas_data.html", 'w') as f:
-        f.write(ar_data)
+        f.write(arkansas_data)
 
     ca_data = requests.get(ca_url)
     ca_data.encoding = 'utf-8'
-    ca_data = ca_data.text
+    california_data = ca_data.text
     with open("california_data.html", 'w') as f:
-        f.write(ca_data)
+        f.write(california_data)
 
     mi_data = requests.get(mi_url)
     mi_data.encoding = 'utf-8'
-    mi_data = mi_data.text
+    michigan_data = mi_data.text
     with open("michigan_data.html", 'w') as f:
-        f.write(mi_data)    
+        f.write(michigan_data)    
 
     # And then, write each set of data to a file so this won't have to run again.
 
@@ -182,47 +183,90 @@ except:
 # Remember that there are things you'll have to be careful about listed in the instructions -- e.g. if no type of park/site/monument is listed in input, one of your instance variables should have a None value...
 
 
-
-
-
 ## Define your class NationalSite here:
 class NationalSite(object):
     def __init__(self, state_Soup):
-        self.location = state_Soup.find("h4")
-        self.name = state_Soup.find("h3")
+        self.location = state_Soup.find("h4").text.strip()
+        self.name = state_Soup.find("h3").text.strip()
         if state_Soup.find("h2") is not None:
-            self.type = state_Soup.find("h2")
+            self.type = state_Soup.find("h2").text.strip()
         else: 
             self.type = None
         if state_Soup.find("p") is not None:
-            self.description = state_Soup.find("p")
+            self.description = state_Soup.find("p").text.strip()
         else:
             self.description = ""
+        sub_grp = state_Soup.find('h3')
+        sub_link = sub_grp.find('a')
+        self.link = sub_link.get('href')
     def __str__(self):
-        return "**{} | {}**".format(self.name, self.location)
+        return "{} | {}".format(self.name, self.location)
     def __contains__(self, test_string):
-        return test_string in self.title
+        return test_string in self.name
     def get_mailing_address(self):
-        pass
-    
+        address_link = 'http://www.nps.gov'+ self.link +'planyourvisit/basicinfo.htm'
+# new code: try except
+        address_page_data = requests.get(address_link)
+        address_page_data.encoding = 'utf-8'
+        address_page_data = address_page_data.text            
+        address_Soup = Soup(address_page_data,'html.parser')
+        section_address_Soup = address_Soup.find("div",{"itemprop":"address"})
+        # if address_Soup.find("div",{"itemprop":"address"}) is None:
+            # return ""
+        # else: 
+        if section_address_Soup.find("span",{"itemprop":"streetAddress"}) is None: 
+            street_address = ""
+        else:
+            street_address = section_address_Soup.find("span",{"itemprop":"streetAddress"}).text.strip()
+        if section_address_Soup.find("span",{"itemprop":"addressLocality"}) is None:
+            address_locality = ""
+        else:
+            address_locality = section_address_Soup.find("span",{"itemprop":"addressLocality"}).text.strip()
+        if section_address_Soup.find("span",{"itemprop":"addressRegion"}) is None:
+            address_region = ""
+        else:
+            address_region = section_address_Soup.find("span",{"itemprop":"addressRegion"}).text.strip()
+        if section_address_Soup.find("span",{"itemprop":"postalCode"}) is None:
+            zipcode = ""
+        else:
+            zipcode = section_address_Soup.find("span",{"itemprop":"postalCode"}).text.strip()
+        address_string = "{} {} {} {}".format(street_address,address_locality,address_region,zipcode)
+        return address_string
+
 ## Recommendation: to test the class, at various points, uncomment the following code and invoke some of the methods / check out the instance variables of the test instance saved in the variable sample_inst:
 
-f = open("sample_html_of_park.html",'r')
-soup_park_inst = Soup(f.read(), 'html.parser') # an example of 1 BeautifulSoup instance to pass into your class
-sample_inst = NationalSite(soup_park_inst)
-f.close()
-
-
-
+# f = open("sample_html_of_park.html",'r')
+# soup_park_inst = Soup(f.read(), 'html.parser') # an example of 1 BeautifulSoup instance to pass into your class
+# sample_inst = NationalSite(soup_park_inst)
+# f.close()
 
 ######### PART 3 #########
 
 # Create lists of NationalSite objects for each state's parks.
 
 # HINT: Get a Python list of all the HTML BeautifulSoup instances that represent each park, for each state.
+arkansas_natl_sites = []
+california_natl_sites = []
+michigan_natl_sites = []
 
+ar_Soup = Soup(arkansas_data,'html.parser')
+ca_Soup = Soup(california_data,'html.parser')
+mi_Soup = Soup(michigan_data,'html.parser')
 
+ar_sub_Soup = ar_Soup.find('ul',{'id':'list_parks'})
+for each_link in ar_sub_Soup.find_all("div",{'class':'col-md-9 col-sm-9 col-xs-12 table-cell list_left'}):
+    each_NatSite_obj = NationalSite(each_link)
+    arkansas_natl_sites.append(each_NatSite_obj)
 
+ca_sub_Soup = ca_Soup.find("ul",{"id":"list_parks"})
+for each_link in ca_sub_Soup.find_all("div",{'class':'col-md-9 col-sm-9 col-xs-12 table-cell list_left'}):
+    each_NatSite_obj = NationalSite(each_link)
+    california_natl_sites.append(each_NatSite_obj)
+
+mi_sub_Soup = mi_Soup.find("ul",{"id":"list_parks"})
+for each_link in mi_sub_Soup.find_all("div",{'class':'col-md-9 col-sm-9 col-xs-12 table-cell list_left'}):
+    each_NatSite_obj = NationalSite(each_link)
+    michigan_natl_sites.append(each_NatSite_obj)
 
 ##Code to help you test these out:
 # for p in california_natl_sites:
@@ -233,6 +277,42 @@ f.close()
 # 	print(m)
 
 
+
+
+
+# arkansas_outfile = open("arkansas.csv","w")
+# arkansas_outfile.write('Name,Location,Type,Address,Description\n')
+# for each_park in arkansas_natl_sites:
+    # arkansas_outfile.write('{},{},{},{},{}\n'.format(each_park.name, each_park.location.replace(',',' '), each_park.type.replace(',',' '), each_park.get_mailing_address(), each_park.description.replace(',',' ')))
+# arkansas_outfile.close()
+
+# california_outfile = open("california.csv","w")
+# california_outfile.write('Name,Location,Type,Address,Description\n')
+# for each_park in california_natl_sites:
+    # california_outfile.write('{},{},{},{},{}\n'.format(each_park.name, each_park.location.replace(',',' '), each_park.type.replace(',',' '), each_park.get_mailing_address(), each_park.description.replace(',',' ')))
+# california_outfile.close()
+
+# michigan_outfile = open("michigan.csv","w")
+# michigan_outfile.write('Name,Location,Type,Address,Description\n')
+# for each_park in michigan_natl_sites:
+    # michigan_outfile.write('{},{},{},{},{}\n'.format(each_park.name, each_park.location.replace(',',' '), each_park.type.replace(',',' '), each_park.get_mailing_address(), each_park.description.replace(',',' ')))
+# michigan_outfile.close()
+
+with open('arkansas.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(['Name','Location','Type','Address','Description'])
+    for each_park in arkansas_natl_sites:
+        writer.writerow([each_park.name, each_park.location, each_park.type, each_park.get_mailing_address(), each_park.description])
+with open('california.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(['Name','Location','Type','Address','Description'])
+    for each_park in california_natl_sites:
+        writer.writerow([each_park.name, each_park.location, each_park.type, each_park.get_mailing_address(), each_park.description])
+with open('michigan.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(['Name','Location','Type','Address','Description'])
+    for each_park in michigan_natl_sites:
+        writer.writerow([each_park.name, each_park.location, each_park.type, each_park.get_mailing_address(), each_park.description])
 
 ######### PART 4 #########
 

@@ -31,7 +31,8 @@ class Part1(unittest.TestCase):
 class Part2(unittest.TestCase):
     def setUp(self):
         self.f = open("sample_html_of_park.html",'r')
-        self.soup_park_inst = BeautifulSoup(self.f.read(),'html.parser') # an example of 1 BeautifulSoup instance to pass into your class
+        self.soup_park_inst = Soup(self.f.read(),'html.parser')
+        # self.soup_park_inst = BeautifulSoup(self.f.read(),'html.parser') # an example of 1 BeautifulSoup instance to pass into your class
         self.sample_inst = NationalSite(self.soup_park_inst)
         self.f.close()
 
