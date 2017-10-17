@@ -31,7 +31,7 @@ cat_img_repository = cat_soup.find_all("img")
 cat_alt = []
 for cat_element in cat_img_repository:
     cat_alt.append(cat_element.get('alt',"No alternative text provided!"))
-# print(cat_alt)
+print(cat_alt)
     
 ######### PART 1 #########
 
